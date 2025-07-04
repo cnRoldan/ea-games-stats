@@ -1,20 +1,13 @@
-import requests
-import json
 import os
-
+import json
 from datetime import datetime
 from collections import defaultdict
 
+MATCHES_DIR = "matches"
 CLUB_ID = "1005509"
-PLATFORM = "common-gen5"
 
-HEADERS = {
-    "User-Agent": "Mozilla/5.0",
-    "accept": "application/json",
-    "referer": "https://www.ea.com/"
-}
+# Clasificación por posición
 
-# Clasificación de posición
 def clasificar_pos(pos):
     try:
         pos = int(pos)
@@ -27,35 +20,39 @@ def clasificar_pos(pos):
         else:
             return "delantero"
     except ValueError:
-        # Si pos es texto (ej. 'midfielder')
-        if "keeper" in pos.lower():
+        pos = pos.lower()
+        if "keeper" in pos:
             return "portero"
-        elif "defender" in pos.lower():
+        elif "defender" in pos:
             return "defensor"
-        elif "midfield" in pos.lower():
+        elif "midfield" in pos:
             return "centrocampista"
-        elif "forward" in pos.lower():
+        elif "forward" in pos:
             return "delantero"
         else:
             return "desconocido"
 
-def obtener_partidos_hoy():
-    url = f"https://proclubs.ea.com/api/fc/clubs/matches?matchType=leagueMatch&platform={PLATFORM}&clubIds={CLUB_ID}"
-    response = requests.get(url, headers=HEADERS)
-    response.raise_for_status()
-    partidos = response.json()
-    hoy = datetime.today().date()
-    return [p for p in partidos if datetime.fromtimestamp(p["timestamp"]).date() == hoy]
+# Cargar todos los partidos
 
-def obtener_estadisticas_globales():
-    url = f"https://proclubs.ea.com/api/fc/members/stats?platform={PLATFORM}&clubId={CLUB_ID}"
-    response = requests.get(url, headers=HEADERS)
-    response.raise_for_status()
-    data = response.json()
-    return {j["name"]: j for j in data["members"]}
+def cargar_partidos():
+    partidos = []
+    if not os.path.exists(MATCHES_DIR):
+        return partidos
+    for archivo in sorted(os.listdir(MATCHES_DIR)):
+        if archivo.endswith(".json"):
+            ruta = os.path.join(MATCHES_DIR, archivo)
+            with open(ruta, encoding="utf-8") as f:
+                try:
+                    datos = json.load(f)
+                    if isinstance(datos, list):
+                        partidos.extend(datos)
+                except Exception as e:
+                    print(f"❌ Error leyendo {archivo}: {e}")
+    return partidos
+
+# Cálculo de puntuación por jugador
 
 def calcular_puntos(jugador, pos, partidos):
-    # Suma todas las estadísticas
     total = defaultdict(float)
     for p in partidos:
         for key in ["goals", "assists", "passesmade", "passattempts", "shots",
@@ -63,13 +60,11 @@ def calcular_puntos(jugador, pos, partidos):
             total[key] += float(p.get(key, 0))
     partidos_jugados = len(partidos)
 
-    # Evitar división por cero
     pase_exito = (total["passesmade"] / total["passattempts"] * 100) if total["passattempts"] else 0
     entrada_exito = (total["tacklesmade"] / total["tackleattempts"] * 100) if total["tackleattempts"] else 0
     tiro_exito = (total["goals"] / total["shots"] * 100) if total["shots"] else 0
-    pases_fallidos = int(total["passattempts"] - total["passesmade"])
+    pases_fallidos = total["passattempts"] - total["passesmade"]
 
-    # Bonos
     bonus_pases = 1.0 if pase_exito >= 85 else 0
     bonus_entradas = 1.0 if entrada_exito >= 20 else 0
     bonus_tiros = 0
@@ -80,7 +75,6 @@ def calcular_puntos(jugador, pos, partidos):
     elif tiro_exito < 15 and total["shots"] > 0:
         bonus_tiros = -1.0
 
-    # Penalizaciones por posición
     penalizacion_fallos = {
         "portero": 0.2,
         "defensor": 0.4,
@@ -102,7 +96,6 @@ def calcular_puntos(jugador, pos, partidos):
         pases_fallidos * penalizacion_fallos[pos]
     )
 
-    # Bonus progresivo por partidos > 1
     if partidos_jugados > 1:
         puntos += (partidos_jugados - 1) * 0.5
 
@@ -114,7 +107,6 @@ def calcular_puntos(jugador, pos, partidos):
         "goles": int(total["goals"]),
         "asistencias": int(total["assists"]),
         "pases": int(total["passesmade"]),
-        "pases_fallidos": pases_fallidos,
         "pase_exito": round(pase_exito, 1),
         "tiros": int(total["shots"]),
         "acierto_tiro": round(tiro_exito, 1),
@@ -126,40 +118,31 @@ def calcular_puntos(jugador, pos, partidos):
     }
 
 if __name__ == "__main__":
-    print("📦 Cargando partidos de hoy...")
-    partidos = obtener_partidos_hoy()
+    print("📦 Cargando todos los partidos guardados...")
+    partidos = cargar_partidos()
     if not partidos:
-        print("⚠️ No se han jugado partidos hoy.")
+        print("⚠️ No se encontraron partidos.")
         exit()
 
-    hoy_str = datetime.today().strftime("%Y-%m-%d")
-    os.makedirs("matches", exist_ok=True)
-    with open(f"matches/{hoy_str}.json", "w", encoding="utf-8") as f:
-        json.dump(partidos, f, indent=2)
-
-
-
-    globales = obtener_estadisticas_globales()
     acumulado = defaultdict(list)
-
     for partido in partidos:
-        jugadores = partido["players"].get(CLUB_ID, {})
+        jugadores = partido.get("players", {}).get(CLUB_ID, {})
         for _, datos in jugadores.items():
-            nombre = datos["playername"]
-            acumulado[nombre].append(datos)
+            nombre = datos.get("playername")
+            if nombre:
+                acumulado[nombre].append(datos)
 
     resultados = []
     for nombre, lista in acumulado.items():
-        pos = clasificar_pos(lista[0]["pos"])
+        pos = clasificar_pos(lista[0].get("pos"))
         resultados.append(calcular_puntos(nombre, pos, lista))
 
     ranking = sorted(resultados, key=lambda x: x["puntos"], reverse=True)
 
     hoy = datetime.today().strftime("%Y-%m-%d")
-    print(f"\n🏆 Ranking Acumulado Diario ({hoy}):\n")
+    print(f"\n📊 Ranking Histórico Acumulado (hasta {hoy}):\n")
     for i, r in enumerate(ranking, 1):
         print(f"{i}. {r['jugador']} → {r['puntos']} pts ({r['partidos']} partidos)")
         print(f"   🎯 {r['goles']} goles | 🔫 {r['acierto_tiro']}% tiro | 🎁 {r['asistencias']} asist.")
-        print(f"   ✅ {r['pases']} pases ({r['pase_exito']}% éxito) | ❌ {r['pases_fallidos']} fallidos")
-        print(f"   🛡️ {r['entradas']} entradas ({r['entrada_exito']}%)")
+        print(f"   ✅ {r['pases']} pases ({r['pase_exito']}%) | 🛡️ {r['entradas']} entradas ({r['entrada_exito']}%)")
         print(f"   🥇 {r['mvps']} MVPs | 🟥 {r['rojas']} rojas | ⭐ {r['valoracion_media']} valoración media\n")
