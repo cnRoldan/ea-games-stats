@@ -76,7 +76,7 @@ def calcular_mvp_semanal(antes, despues):
 
 if __name__ == "__main__":
     hoy = datetime.today().date()
-    hace_una_semana = hoy - timedelta(days=1)
+    hace_una_semana = hoy - timedelta(days=7)
 
     fecha_actual = hoy.strftime("%Y-%m-%d")
     fecha_pasada = hace_una_semana.strftime("%Y-%m-%d")
