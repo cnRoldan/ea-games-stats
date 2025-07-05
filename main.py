@@ -6,7 +6,7 @@ import sys
 
 try:
     print("📥 Descargando snapshot actual con guardar_stats.py...")
-    subprocess.run(["python", "guardar_stats.py"], check=True)
+    subprocess.run(["python3", "guardar_stats.py"], check=True)
 except Exception as e:
     print(f"❌ Error al ejecutar guardar_stats.py: {e}")
     exit(1)
