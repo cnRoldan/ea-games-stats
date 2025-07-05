@@ -1,6 +1,3 @@
 # Ignore IDE settings
 .idea/
 
-# Ignore generated JSON stats
-stats/*.json
-matches/*.json
