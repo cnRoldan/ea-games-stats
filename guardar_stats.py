@@ -13,7 +13,7 @@ HEADERS = {
 }
 
 def fetch_stats_globales():
-    url = "https://proclubs.ea.com/api/fc/members/stats?platform=common-gen5&clubId=XXXX"
+    url = f"https://proclubs.ea.com/api/fc/members/stats?platform={PLATFORM}&clubId={CLUB_ID}"
     try:
         response = requests.get(url, headers=HEADERS, timeout=10)
         response.raise_for_status()
