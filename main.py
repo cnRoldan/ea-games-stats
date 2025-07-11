@@ -4,12 +4,20 @@ from datetime import datetime
 import subprocess
 import sys
 
+print("📥 Descargando snapshot actual con Puppeteer (fetch_stats.js)...")
+print("📥 Descargando snapshot actual...")
+
+entorno = ""
+
 try:
-    print("📥 Descargando snapshot actual con guardar_stats.py...")
-    subprocess.run(["python3", "guardar_stats.py"], check=True)
+    if entorno == "local":
+        subprocess.run(["python3", "guardar_stats.py"], check=True)
+    else:
+        subprocess.run(["node", "../ea_scraper/fetch_stats.js"], check=True, cwd="stats")
 except Exception as e:
-    print(f"❌ Error al ejecutar guardar_stats.py: {e}")
-    exit(1)
+    print(f"❌ Error al obtener stats: {e}")
+    sys.exit(1)
+
 
 from config.puntuacion import calcular_puntos
 
@@ -44,6 +52,8 @@ def cargar_snapshots(n_dias=1):
 if __name__ == "__main__":
     # Puedes pasar un argumento por línea de comandos, como: python main.py semanal
     periodo = sys.argv[1] if len(sys.argv) > 1 else "semanal"
+    entorno = sys.argv[2] if len(sys.argv) > 2 else "aws"
+
     n_dias = PERIODOS.get(periodo, None)
 
     if n_dias is None:
