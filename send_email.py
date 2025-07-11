@@ -7,8 +7,8 @@ import sys
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
 USERNAME = "claudiocn089@gmail.com"
-PASSWORD = "xevmfxldkjfvvzzs"
-DESTINATARIO = "claudiocn089@gmail.com"
+PASSWORD = "xevmfxldkjvfvzzs"
+DESTINATARIO = "claudio_cn089@hotmail.com"
 
 def enviar_email(asunto, cuerpo, adjunto=None):
     msg = MIMEMultipart()
