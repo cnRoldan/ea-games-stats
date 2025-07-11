@@ -4,21 +4,6 @@ from datetime import datetime
 import subprocess
 import sys
 
-print("📥 Descargando snapshot actual con Puppeteer (fetch_stats.js)...")
-print("📥 Descargando snapshot actual...")
-
-entorno = ""
-
-try:
-    if entorno == "local":
-        subprocess.run(["python3", "guardar_stats.py"], check=True)
-    else:
-        subprocess.run(["node", "../ea_scraper/fetch_stats.js"], check=True, cwd="stats")
-except Exception as e:
-    print(f"❌ Error al obtener stats: {e}")
-    sys.exit(1)
-
-
 from config.puntuacion import calcular_puntos
 
 STATS_DIR = "stats"
@@ -50,9 +35,18 @@ def cargar_snapshots(n_dias=1):
     return inicio, fin
 
 if __name__ == "__main__":
-    # Puedes pasar un argumento por línea de comandos, como: python main.py semanal
     periodo = sys.argv[1] if len(sys.argv) > 1 else "semanal"
     entorno = sys.argv[2] if len(sys.argv) > 2 else "aws"
+
+    print("📥 Descargando snapshot actual...")
+    try:
+        if entorno == "local":
+            subprocess.run(["python3", "guardar_stats.py"], check=True)
+        else:
+            subprocess.run(["node", "../ea_scraper/fetch_stats.js"], check=True, cwd="stats")
+    except Exception as e:
+        print(f"❌ Error al obtener stats: {e}")
+        sys.exit(1)
 
     n_dias = PERIODOS.get(periodo, None)
 
@@ -104,30 +98,27 @@ if __name__ == "__main__":
         print(f"   ✅ {r['pases']} pases / {r['pases_intentados']} intentos ({r['pase_exito']}%)")
         print(f"   🛡️ {r['entradas']} entradas ({r['entrada_exito']}%) | 🥇 {r['mvps']} MVPs | 🟥 {r['rojas']} rojas | ⭐ {r['valoracion_media']} valoración")
 
-        # Mostrar solo la portería a 0 relevante
         if r["posicion"] == "defender":
             print(f"   🧤 Porterías a 0: {r.get('cleanSheetsDef', 0)} como defensor")
         elif r["posicion"] == "goalkeeper":
             print(f"   🧤 Porterías a 0: {r.get('cleanSheetsGK', 0)} como portero")
+        print()
 
-        print()  # Salto de línea final
+    # Guardar MVP de la semana (o periodo)
+    if ranking:
+        resumen = {
+            "fecha": hoy_fecha,
+            "mvp": ranking[0],
+            "top3": ranking[:3]
+        }
+        os.makedirs("rankings", exist_ok=True)
+        with open(f"rankings/ranking-{periodo}-{hoy_fecha}.json", "w", encoding="utf-8") as f:
+            json.dump(resumen, f, indent=2, ensure_ascii=False)
+        print(f"🏆 Ranking guardado en rankings/ranking-{periodo}-{hoy_fecha}.json")
 
-        # Guardar MVP de la semana
-        if ranking:
-            resumen = {
-                "fecha": hoy_fecha,
-                "mvp": ranking[0],
-                "top3": ranking[:3]
-            }
-            os.makedirs("rankings", exist_ok=True)
-            with open(f"rankings/ranking-{periodo}-{hoy_fecha}.json", "w", encoding="utf-8") as f:
-                json.dump(resumen, f, indent=2, ensure_ascii=False)
-            print(f"🏆 Ranking guardado en rankings/ranking-{periodo}-{hoy_fecha}.json")
-
-            # Borramos todos los JSON excepto el de hoy
-            for f in os.listdir(STATS_DIR):
-                ruta = os.path.join(STATS_DIR, f)
-                if f != f"{hoy_fecha}.json" and f.endswith(".json"):
-                    os.remove(ruta)
-            print("🧹 Limpiados archivos antiguos de stats/. Solo queda el más reciente.")
-
+        # Borrar JSON antiguos
+        for f in os.listdir(STATS_DIR):
+            ruta = os.path.join(STATS_DIR, f)
+            if f != f"{hoy_fecha}.json" and f.endswith(".json"):
+                os.remove(ruta)
+        print("🧹 Limpiados archivos antiguos de stats/. Solo queda el más reciente.")
