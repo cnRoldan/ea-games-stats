@@ -46,7 +46,7 @@ if __name__ == "__main__":
         if entorno == "local":
             subprocess.run(["python3", "guardar_stats.py"], check=True)
         else:
-            subprocess.run(["node", "../ea_scraper/fetch_stats.js"], check=True, cwd="stats")
+            subprocess.run(["node", "../ea_scraper/fetch_stats.js"], check=True)
     except Exception as e:
         print(f"❌ Error al obtener stats: {e}")
         sys.exit(1)
