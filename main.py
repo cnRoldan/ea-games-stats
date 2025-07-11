@@ -88,8 +88,36 @@ if __name__ == "__main__":
 
     print(f"\n📊 Ranking medio diario ({periodo}) hasta {hoy_fecha}:\n")
     for i, r in enumerate(ranking, 1):
-        print(f"{i}. {r['jugador']} → {r['puntos']} pts/día ({r['partidos']} partidos)")
+        print(f"{i}. {r['jugador']} ({r['posicion']}) → {r['puntos']} pts/día ({r['partidos']} partidos)")
         print(f"   🎯 {r['goles']} goles | 🔫 {r['acierto_tiro']}% tiro | 🎁 {r['asistencias']} asist.")
         print(f"   📈 Ratio pases: {r['ratio_pases']} por partido | ⚽ Ratio goleador: {r['ratio_goleador']}")
         print(f"   ✅ {r['pases']} pases / {r['pases_intentados']} intentos ({r['pase_exito']}%)")
-        print(f"   🛡️ {r['entradas']} entradas ({r['entrada_exito']}%) | 🥇 {r['mvps']} MVPs | 🟥 {r['rojas']} rojas | ⭐ {r['valoracion_media']} valoración\n")
+        print(f"   🛡️ {r['entradas']} entradas ({r['entrada_exito']}%) | 🥇 {r['mvps']} MVPs | 🟥 {r['rojas']} rojas | ⭐ {r['valoracion_media']} valoración")
+
+        # Mostrar solo la portería a 0 relevante
+        if r["posicion"] == "defender":
+            print(f"   🧤 Porterías a 0: {r.get('cleanSheetsDef', 0)} como defensor")
+        elif r["posicion"] == "goalkeeper":
+            print(f"   🧤 Porterías a 0: {r.get('cleanSheetsGK', 0)} como portero")
+
+        print()  # Salto de línea final
+
+        # Guardar MVP de la semana
+        if ranking:
+            resumen = {
+                "fecha": hoy_fecha,
+                "mvp": ranking[0],
+                "top3": ranking[:3]
+            }
+            os.makedirs("rankings", exist_ok=True)
+            with open(f"rankings/ranking-{periodo}-{hoy_fecha}.json", "w", encoding="utf-8") as f:
+                json.dump(resumen, f, indent=2, ensure_ascii=False)
+            print(f"🏆 Ranking guardado en rankings/ranking-{periodo}-{hoy_fecha}.json")
+
+            # Borramos todos los JSON excepto el de hoy
+            for f in os.listdir(STATS_DIR):
+                ruta = os.path.join(STATS_DIR, f)
+                if f != f"{hoy_fecha}.json" and f.endswith(".json"):
+                    os.remove(ruta)
+            print("🧹 Limpiados archivos antiguos de stats/. Solo queda el más reciente.")
+

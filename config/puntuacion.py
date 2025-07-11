@@ -30,15 +30,26 @@ def calcular_puntos(nombre, pos, stats_hoy, stats_ayer):
         pases_intentados = int(pases_realizados)
     pases_fallidos = pases_intentados - int(pases_realizados)
 
-    # Valor especial por tackle según posición
-    tackle_valor = 2.0 if pos == "midfielder" else 0.5
+    # Multiplicadores por posición
+    if pos == "midfielder":
+        tackle_valor = 2.0
+        pase_valor = 0.01
+    elif pos == "defender":
+        tackle_valor = 0.6
+        pase_valor = 0.015
+    elif pos == "goalkeeper":
+        tackle_valor = 0.8
+        pase_valor = 0.02
+    else:
+        tackle_valor = 0.5
+        pase_valor = 0.01
 
-    # Clean sheets bonus
+    # Nuevo bonus de portería a 0
     bonus_clean = 0
     if pos == "defender":
-        bonus_clean = clean_def * 3
+        bonus_clean = clean_def * 12
     elif pos == "goalkeeper":
-        bonus_clean = clean_gk * 3
+        bonus_clean = clean_gk * 12
 
     # Bonus por precisión de pase
     bonus_pase = 0
@@ -64,7 +75,7 @@ def calcular_puntos(nombre, pos, stats_hoy, stats_ayer):
     puntos = (
         goles * 2.0 +
         asistencias * 3.5 +
-        pases_realizados * 0.01 +
+        pases_realizados * pase_valor +
         tackles * tackle_valor +
         partidos * 0.5 +
         mvps * 4.0 +
@@ -99,4 +110,6 @@ def calcular_puntos(nombre, pos, stats_hoy, stats_ayer):
         "clean_sheets": int(clean_def if pos == "defender" else clean_gk if pos == "goalkeeper" else 0),
         "ratio_pases": round(ratio_pases, 2),
         "ratio_goleador": round(ratio_goleador, 2),
+        "cleanSheetsDef": int(clean_def),
+        "cleanSheetsGK": int(clean_gk)
     }
