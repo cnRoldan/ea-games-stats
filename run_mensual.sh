@@ -1,3 +1,8 @@
 #!/bin/bash
 cd ~/ea-stats
-python3 main.py mensual >> logs/mensual.log 2>&1
+
+FECHA=$(date +%F)
+LOG="logs/mensual-${FECHA}.log"
+
+python3 main.py mensual > "$LOG" 2>&1
+python3 send_email.py "📈 Informe Mensual EA Stats - $FECHA" "$LOG"
