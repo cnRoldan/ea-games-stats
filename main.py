@@ -39,6 +39,9 @@ if __name__ == "__main__":
     entorno = sys.argv[2] if len(sys.argv) > 2 else "aws"
 
     print("📥 Descargando snapshot actual...")
+
+    os.makedirs("stats", exist_ok=True)  # 👈 CREA LA CARPETA si no existe
+
     try:
         if entorno == "local":
             subprocess.run(["python3", "guardar_stats.py"], check=True)
