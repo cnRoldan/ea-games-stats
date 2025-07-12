@@ -170,7 +170,7 @@ if __name__ == "__main__":
         print(f"🏆 Ranking guardado en {ruta_destino}/ranking-{periodo}-{hoy_fecha}.json")
 
         # Guardar JSON para web
-        os.makedirs("web/data", exist_ok=True)
+        os.makedirs("data", exist_ok=True)
         ranking_web = {
             "fecha": datetime.today().strftime("%d/%m/%Y"),
             "jugadores": [
@@ -178,9 +178,9 @@ if __name__ == "__main__":
                 for r in ranking
             ]
         }
-        with open("web/data/ranking.json", "w", encoding="utf-8") as fw:
+        with open("data/ranking.json", "w", encoding="utf-8") as fw:
             json.dump(ranking_web, fw, indent=2, ensure_ascii=False)
-        print("🌐 Archivo web/data/ranking.json actualizado para la página web.")
+        print("🌐 Archivo data/ranking.json actualizado para la página web.")
 
         if periodo == "semanal":
             for f in os.listdir(STATS_DIR):
