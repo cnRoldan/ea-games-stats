@@ -6,28 +6,28 @@
   <title>Ranking Tigueres FC</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center py-10">
-  <header class="mb-8">
-    <h1 class="text-4xl font-bold text-center text-yellow-400">Ranking Semanal - Tigueres FC</h1>
-    <p class="text-gray-400 text-center">Actualizado: <span id="fecha">--/--/----</span></p>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center py-6 px-4">
+  <header class="mb-6 text-center">
+    <h1 class="text-3xl sm:text-4xl font-bold text-yellow-400">Ranking Semanal - Tigueres FC</h1>
+    <p class="text-gray-400 mt-1">Actualizado: <span id="fecha">--/--/----</span></p>
   </header>
 
-  <main class="w-full max-w-3xl">
-    <table class="table-auto w-full text-left border border-gray-700">
+  <main class="w-full max-w-3xl overflow-x-auto">
+    <table class="min-w-full table-auto text-left border border-gray-700">
       <thead>
-        <tr class="bg-yellow-500 text-gray-900">
-          <th class="px-4 py-2">#</th>
-          <th class="px-4 py-2">Jugador</th>
-          <th class="px-4 py-2">Puntos</th>
+        <tr class="bg-yellow-500 text-gray-900 text-sm sm:text-base">
+          <th class="px-3 py-2">#</th>
+          <th class="px-3 py-2">Jugador</th>
+          <th class="px-3 py-2">Puntos</th>
         </tr>
       </thead>
-      <tbody id="tabla-ranking" class="bg-gray-800 divide-y divide-gray-700">
+      <tbody id="tabla-ranking" class="bg-gray-800 divide-y divide-gray-700 text-sm sm:text-base">
         <!-- Rellenado dinámicamente -->
       </tbody>
     </table>
   </main>
 
-  <footer class="mt-10 text-sm text-gray-500">
+  <footer class="mt-8 text-xs text-gray-500 text-center">
     <p>&copy; 2025 Tigueres FC - Ranking generado automáticamente</p>
   </footer>
 
@@ -42,9 +42,9 @@
       data.jugadores.forEach((jugador, i) => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td class="px-4 py-2 ${i === 0 ? 'font-bold' : ''}">${i + 1}</td>
-          <td class="px-4 py-2">${jugador.nombre}</td>
-          <td class="px-4 py-2 ${i === 0 ? 'text-yellow-400 font-semibold' : ''}">${jugador.puntos}</td>
+          <td class="px-3 py-2 ${i === 0 ? 'font-bold' : ''}">${i + 1}</td>
+          <td class="px-3 py-2">${jugador.nombre}</td>
+          <td class="px-3 py-2 ${i === 0 ? 'text-yellow-400 font-semibold' : ''}">${jugador.puntos}</td>
         `;
         tbody.appendChild(tr);
       });
