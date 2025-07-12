@@ -133,6 +133,11 @@ if __name__ == "__main__":
         resultados.append(res)
 
     ranking = sorted(resultados, key=lambda x: x["puntos"], reverse=True)
+
+    if not ranking:
+        print("ℹ️ No se jugaron partidos durante el periodo. No hay ranking disponible.")
+        sys.exit(0)
+
     hoy_fecha = datetime.today().strftime("%Y-%m-%d")
 
     print(f"\n📊 Ranking medio diario ({periodo}) hasta {hoy_fecha}:\n")
