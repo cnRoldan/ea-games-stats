@@ -8,7 +8,6 @@ from config.puntuacion import calcular_puntos
 
 STATS_DIR = "stats"
 
-# Asigna días según periodo textual
 PERIODOS = {
     "diario": 1,
     "semanal": 7
@@ -118,7 +117,6 @@ if __name__ == "__main__":
 
     for nombre, stats_hoy in miembros_hoy.items():
         stats_ayer = miembros_ayer.get(nombre)
-
         if stats_ayer is None:
             stats_ayer = {k: "0" for k in stats_hoy}
 
@@ -171,7 +169,19 @@ if __name__ == "__main__":
             json.dump(resumen, f, indent=2, ensure_ascii=False)
         print(f"🏆 Ranking guardado en {ruta_destino}/ranking-{periodo}-{hoy_fecha}.json")
 
-        # Limpieza solo si es semanal
+        # Guardar JSON para web
+        os.makedirs("web/data", exist_ok=True)
+        ranking_web = {
+            "fecha": datetime.today().strftime("%d/%m/%Y"),
+            "jugadores": [
+                {"nombre": r["jugador"], "puntos": r["puntos"]}
+                for r in ranking
+            ]
+        }
+        with open("web/data/ranking.json", "w", encoding="utf-8") as fw:
+            json.dump(ranking_web, fw, indent=2, ensure_ascii=False)
+        print("🌐 Archivo web/data/ranking.json actualizado para la página web.")
+
         if periodo == "semanal":
             for f in os.listdir(STATS_DIR):
                 ruta = os.path.join(STATS_DIR, f)
