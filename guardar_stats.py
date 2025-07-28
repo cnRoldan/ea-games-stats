@@ -3,7 +3,7 @@ import json
 import os
 from datetime import datetime
 
-CLUB_ID = "1005509"
+CLUB_ID = "4168886"
 PLATFORM = "common-gen5"
 
 HEADERS = {
